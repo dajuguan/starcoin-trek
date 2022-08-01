@@ -90,6 +90,7 @@ export const App = () => {
       let res = await getResource(account[0],COUNTER_ADDRESS ,COUNTER_RESOURCE_ID)
       if(res) {
         setCounter(res.value)
+        setInitialized(true)
       } else {
         alert("please init counter first!")
         setInitialized(false)
