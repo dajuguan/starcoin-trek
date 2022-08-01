@@ -7,8 +7,9 @@ const nodeUrlMap = {
     '254': "http://localhost:9851"
 }
 
-export async function getResource(address, functionId) {
-    const resourceType = `${address}::${functionId}`
+export async function getResource(address,contractaddr, functionId) {
+    const resourceType = `${contractaddr}::${functionId}`
+    console.log(address,resourceType)
     const resource = await starcoinProvider.getResource(address, resourceType)
     console.log(resource)
     return resource
@@ -17,6 +18,7 @@ export async function getResource(address, functionId) {
 export async function executeFunction(address, functionName, strTypeArgs = [], args = []) {
 
     const functionId = `${address}::${functionName}`;
+    console.log(functionId)
     const tyArgs = utils.tx.encodeStructTypeTags(strTypeArgs);
     if (args.length > 0) {
         args[0] = (function () {
@@ -28,7 +30,7 @@ export async function executeFunction(address, functionName, strTypeArgs = [], a
     args = args.map(arg => arrayify(arg))
     const nodeUrl = nodeUrlMap[window.starcoin.networkVersion]
     console.log("nodeUrl:", nodeUrl)
-    const scriptFunction = utils.tx.encodeScriptFunction(functionId, tyArgs, args, nodeUrl);
+    const scriptFunction = utils.tx.encodeScriptFunction(functionId, tyArgs, args,nodeUrl);
 
     const payloadInHex = (() => {
         const se = new bcs.BcsSerializer();

@@ -8,7 +8,7 @@ import { arrayify, hexlify } from "@ethersproject/bytes";
 import { utils, bcs } from "@starcoin/starcoin";
 import { starcoinProvider } from "./app";
 import { executeFunction } from "./txs/counter.tx";
-import { COUNTER_ADDRESS, INCR_COUNTER_FUNC_NAMW, INCR_COUNTERBY_FUNC_NAME } from "./txs/config";
+import { COUNTER_ADDRESS, INCR_COUNTER_FUNC_NAMW, INCR_COUNTERBY_FUNC_NAME, INIT_COUNTER_FUNC_NAME } from "./txs/config";
 
 export const makeModal = (props) => {
   const { children } = props;
@@ -55,43 +55,27 @@ export const Mask = (props) => {
 };
 
 export const Account = (props) => {
-  const { initAccount, initAmount, initExpired } = props;
   const { isShow } = useFadeIn();
   const [hash, setHash] = useState("");
+  const [txStatus, setTxStatus] = useState()
 
-  const handleCall = useCallback(async () => {
-    try {
-      const functionId = `${COUNTER_ADDRESS}::MyCounter::init_counter`;
-      const strTypeArgs = [];
-      const tyArgs = utils.tx.encodeStructTypeTags(strTypeArgs);
-      const args = [];
-
-      const scriptFunction = utils.tx.encodeScriptFunction(
-        functionId,
-        tyArgs,
-        args
-      );
-
-      // Multiple BcsSerializers should be used in different closures, otherwise, the latter will be contaminated by the former.
-      const payloadInHex = (function () {
-        const se = new bcs.BcsSerializer();
-        scriptFunction.serialize(se);
-        return hexlify(se.getBytes());
-      })();
-
-      const txParams = {
-        data: payloadInHex,
-      };
-
-      const hash = await starcoinProvider
-        .getSigner()
-        .sendUncheckedTransaction(txParams);
-      console.log({ hash });
-      setHash(hash);
-    } catch (e) {
-      setHash(e.message || "Unkown Error");
+  useEffect(() => {
+    setTxStatus("Pending...")
+    const init_counter = async () => {
+      let txHash = await executeFunction(COUNTER_ADDRESS, INIT_COUNTER_FUNC_NAME)
+      setHash(txHash)
+      let timer = setInterval(async () => {
+        const txnInfo = await starcoinProvider.getTransactionInfo(txHash);
+        setTxStatus(txnInfo.status)
+        if (txnInfo.status === "Executed") {
+          clearInterval(timer);
+        }
+      }, 500);
     }
-  }, []);
+    init_counter()
+
+  }, [])
+
 
   return (
     <div
@@ -100,17 +84,12 @@ export const Account = (props) => {
         isShow ? "opacity-100 scale-100" : "opacity-0 scale-50"
       )}
     >
-      <div
-        className="mt-6 p-4 flex justify-center font-bold bg-blue-900 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
-        onClick={handleCall}
-      >
-        CALL
-      </div>
       {hash && (
         <div className="text-center mt-2 text-gray-500 break-all">
           Transaction: {hash}
         </div>
       )}
+      {txStatus ? <div style={{ "textAlign": "Center" }}>{txStatus}</div> : null}
     </div>
   );
 };

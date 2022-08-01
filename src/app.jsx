@@ -49,7 +49,7 @@ export const App = () => {
       console.log("account changed")
       freshConnected()
     })
-  }, [])
+  }, [getCounter])
 
   useEffect(() => {
     if (!isStarMaskInstalled()) {
@@ -67,7 +67,6 @@ export const App = () => {
         window.starcoin,
         "any"
       );
-      getCounter()
     } catch {
       setInstall(false);
     }
@@ -87,9 +86,11 @@ export const App = () => {
 
   const getCounter = async () => {
     try {
-      let res = await getResource(COUNTER_ADDRESS, COUNTER_RESOURCE_ID)
+      console.log("account",account[0])
+      let res = await getResource(account[0],COUNTER_ADDRESS ,COUNTER_RESOURCE_ID)
       setCounter(res.value)
     } catch (err) {
+      console.error(err)
       setInitialized(false)
       alert("please init counter first!")
     }
