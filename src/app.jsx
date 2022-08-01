@@ -32,7 +32,7 @@ export const App = () => {
 
   const [isInstall, setInstall] = useState(true);
 
-  const [counter, setCounter] = useState(0);
+  const [counter, setCounter] = useState();
 
   const [initialized, setInitialized] = useState(false)
 
@@ -90,6 +90,9 @@ export const App = () => {
       let res = await getResource(account[0],COUNTER_ADDRESS ,COUNTER_RESOURCE_ID)
       if(res) {
         setCounter(res.value)
+      } else {
+        alert("please init counter first!")
+        setInitialized(false)
       }
     } catch (err) {
       console.error(err)
