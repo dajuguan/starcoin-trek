@@ -12,13 +12,7 @@ export let starcoinProvider;
 
 const currentUrl = new URL(window.location.href);
 
-// const forwarderOrigin = "https://barnard-seed.starcoin.org"
-const forwarderOrigin = "http://localhost:3000"
-
-// const forwarderOrigin =
-//   process.env.NETWORK === "barnard"
-//     ? "ws://barnard.seed.starcoin.org:9870"
-//     : "http://localhost:3000";
+const forwarderOrigin = process.env.NETWORK === "dev" ? "http://localhost:3000" : "https://barnard-seed.starcoin.org"
 
 console.log("forwarderOrigin", forwarderOrigin)
 
@@ -28,30 +22,7 @@ const onboarding = new StarMaskOnboarding({ forwarderOrigin });
 
 console.log("forwarderOrigin", onboarding.forwarderOrigin)
 
-const BIG_NUMBER_NANO_STC_MULTIPLIER = new BigNumber("1000000000");
-
-const gas = {
-  gasLimit: 127845,
-  gasPrice: 1,
-};
-
-
 export const App = () => {
-  // Send STC默认信息
-  const [defaultToAddr, setAddr] = useState(
-    "0x1168e88ffc5cec53b398b42d61885bbb"
-  );
-  // Send STC默认信息
-  const [defaultAmount, setAmount] = useState("0.001");
-  // Send STC默认信息
-  const [defaultExpired, setExpired] = useState("1800");
-  // Send STC 被拒绝
-  const [trasError, setTrasError] = useState(false);
-
-  const [transactionHash, setTrans] = useState("");
-
-  const [transTimer, setTimer] = useState(null);
-
   // 鼠标是否hover了connect按钮
   const [connectOver, setOver] = useState(false);
   // 是否已连接账户
@@ -62,6 +33,8 @@ export const App = () => {
   const [isInstall, setInstall] = useState(true);
 
   const [counter, setCounter] = useState(0);
+
+  const [initialized, setInitialized] = useState(true)
 
   const freshConnected = useCallback(async () => {
     const newAccounts = await window.starcoin.request({
@@ -94,10 +67,12 @@ export const App = () => {
         window.starcoin,
         "any"
       );
+      getCounter()
     } catch {
       setInstall(false);
     }
   }, []);
+
 
   const handleClick = useCallback(() => {
     if (isStarMaskConnected) {
@@ -110,44 +85,15 @@ export const App = () => {
     listenMessage()
   }, [freshConnected, isStarMaskConnected]);
 
-  const handleSendSTC = useCallback(async () => {
-    setTrasError("");
-    const sendAmountSTC = new BigNumber(String(defaultAmount), 10);
-    const sendAmountNanoSTC = sendAmountSTC.times(
-      BIG_NUMBER_NANO_STC_MULTIPLIER
-    );
-    const sendAmountHex = `0x${sendAmountNanoSTC.toString(16)}`;
-
-    const txParams = {
-      to: defaultToAddr,
-      value: sendAmountHex,
-      ...gas,
-    };
-
-    const expiredSecs = parseInt(defaultExpired, 10);
-    if (expiredSecs > 0) {
-      txParams.expiredSecs = expiredSecs;
-    }
-    try {
-      const hash = await starcoinProvider
-        .getSigner()
-        .sendUncheckedTransaction(txParams);
-      setTrans(hash);
-
-      setTimer(
-        setTimeout(() => {
-          setTrans(false);
-        }, 5000)
-      );
-    } catch (e) {
-      console.log(e);
-      setTrasError(e.message || "Unkown Error");
-    }
-  }, [defaultToAddr, defaultExpired, defaultAmount]);
-
   const getCounter = async () => {
-    let res = await getResource(COUNTER_ADDRESS, COUNTER_RESOURCE_ID)
-    setCounter(res.value)
+    try {
+      let res = await getResource(COUNTER_ADDRESS, COUNTER_RESOURCE_ID)
+      setCounter(res.value)
+    } catch (err) {
+      setInitialized(false)
+      alert("please init counter first!")
+    }
+
   }
   return (
     <div className="tracking-widest">
@@ -206,70 +152,17 @@ export const App = () => {
                   </div>
                 </div>
 
-                {/* Send STC */}
-                <div className="rounded-2xl border-2 border-slate-50 shadow-xl p-2 mt-4">
-                  <div className="font-bold">Send STC</div>
-                  <div className="mt-1">To</div>
-                  <div className="mt-1">
-                    <input
-                      className="w-full focus:outline-none p-4 border-solid border-2 border-x-sky-100 rounded-2xl"
-                      value={defaultToAddr}
-                      onChange={(e) => {
-                        setAddr(e.target.value);
-                      }}
-                    />
-                  </div>
-                  <div className="mt-1">Amount of STC</div>
-                  <div className="mt-1">
-                    <input
-                      className="w-full focus:outline-none p-4 border-solid border-2 border-x-sky-100 rounded-2xl"
-                      value={defaultAmount}
-                      onChange={(e) => {
-                        setAmount(e.target.value);
-                      }}
-                    />
-                  </div>
-                  <div className="mt-1">
-                    Transaction Expired Seconds(default 30 minutes)
-                  </div>
-                  <div className="mt-1">
-                    <input
-                      className="w-full focus:outline-none p-4 border-solid border-2 border-x-sky-100 rounded-2xl"
-                      value={defaultExpired}
-                      onChange={(e) => {
-                        setExpired(e.target.value);
-                      }}
-                    />
-                  </div>
-                  <div
-                    className="cursor-pointer duration-300 w-full p-4 mt-4 text-white bg-blue-900 hover:bg-blue-700 rounded-2xl flex justify-center font-bold"
-                    onClick={handleSendSTC}
-                  >
-                    SEND
-                  </div>
-                  {trasError && (
-                    <div className="flex justify-center text-red-800 text-center mt-1 w-full">
-                      {trasError}
-                    </div>
-                  )}
-                  <div
-                    className={classnames(
-                      "mt-2 bg-green-200 text-green-900 p-2 flex justify-center flex-col",
-                      transactionHash ? "opacity-100" : "hidden"
-                    )}
-                  >
-                    Transaction Hash:
-                    <div>{transactionHash}</div>
-                  </div>
-                </div>
-
                 {/* Contracts Function */}
                 {/* Added parts Function */}
+
+                <div className="font-bold">Contract Function</div>
                 <div className="mt-4 shadow-2xl rounded-2xl border-2 border-slate-50 p-2">
-                  <div className="font-bold">Contract Function</div>
                   <div
                     className="mt-4 rounded-2xl bg-blue-900 flex justify-center text-white p-4 font-bold cursor-pointer hover:bg-blue-700 duration-300"
                     onClick={() => {
+                      if(initialized) {
+                        return
+                      }
                       makeModal({
                         children: ({ onClose }) => {
                           return (
@@ -282,8 +175,9 @@ export const App = () => {
                       });
                     }}
                   >
-                    Init_counter
+                    {initialized ? "Counter has been initialized": "Init_counter"} 
                   </div>
+
                   <div
                     className="mt-4 rounded-2xl bg-blue-900 flex justify-center text-white p-4 font-bold cursor-pointer hover:bg-blue-700 duration-300"
                     onClick={() => getCounter()}
