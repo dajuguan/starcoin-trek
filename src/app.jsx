@@ -98,6 +98,7 @@ export const App = () => {
       }
     } catch (err) {
       console.error(err)
+      setCounter(undefined)
       setInitialized(false)
       alert("please init counter first!")
     }
