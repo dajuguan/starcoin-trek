@@ -34,7 +34,7 @@ export const App = () => {
 
   const [counter, setCounter] = useState(0);
 
-  const [initialized, setInitialized] = useState(true)
+  const [initialized, setInitialized] = useState(false)
 
   const freshConnected = useCallback(async () => {
     const newAccounts = await window.starcoin.request({
@@ -88,7 +88,9 @@ export const App = () => {
     try {
       console.log("account",account[0])
       let res = await getResource(account[0],COUNTER_ADDRESS ,COUNTER_RESOURCE_ID)
-      setCounter(res.value)
+      if(res) {
+        setCounter(res.value)
+      }
     } catch (err) {
       console.error(err)
       setInitialized(false)
