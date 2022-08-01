@@ -1,3 +1,6 @@
+# barnard
+starcoin --connect ws://barnard.seed.starcoin.org:9870 --local-account-dir ~/.starcoin/barnard/account_vaults console
+
 # deploy
 dev deploy [path to blob] -s [addr] -b
 dev deploy /Users/cjf/Documents/bc/Web3-dApp-Camp/move-dapp/my-counter/release/my_counter.v0.0.1.blob -s 0x07Ffe973C72356C25e623E2470172A69 -b
