@@ -119,6 +119,7 @@ export const Counter = (props) => {
   const [hash, setHash] = useState('')
   const [txStatus, setTxStatus] = useState()
   useEffect(() => {
+    setTxStatus("Pending...")
     const incr_counter = async () => {
       let txHash = await executeFunction(COUNTER_ADDRESS, INCR_COUNTER_FUNC_NAMW)
       setHash(txHash)
