@@ -93,6 +93,7 @@ export const App = () => {
         setInitialized(true)
       } else {
         alert("please init counter first!")
+        setCounter(undefined)
         setInitialized(false)
       }
     } catch (err) {
